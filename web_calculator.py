@@ -1,274 +1,174 @@
 from flask import Flask, render_template, request
+import math
 
 app = Flask(__name__)
 
 # ==============================
-# 顺丰价格表（上海市始发陆运包裹）
-# 来源：2025年7月官方PDF + 账单验证
+# 顺丰快递计费逻辑（示例，可根据实际调整）
+# 假设：首重1kg=12元，续重2元/kg，不分区
 # ==============================
-
-SF_PRICE_TABLE = {
-    "同省": [
-        {"first": 1, "max": 3, "base": 10, "unit": 2},
-        {"first": 3, "max": 20, "base": 14, "unit": 2},
-        {"first": 20, "max": float('inf'), "base": 48, "unit": 3}
-    ],
-    "云南省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5.5},
-        {"first": 3, "max": 15, "base": 26, "unit": 5},
-        {"first": 15, "max": float('inf'), "base": 86, "unit": 6.5}
-    ],
-    "内蒙古自治区": [
-        {"first": 1, "max": 3, "base": 13, "unit": 6},
-        {"first": 3, "max": 15, "base": 25, "unit": 6},
-        {"first": 15, "max": float('inf'), "base": 97, "unit": 7}
-    ],
-    "北京市": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "天津市": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "吉林省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 6.5},
-        {"first": 3, "max": 15, "base": 28, "unit": 6},
-        {"first": 15, "max": float('inf'), "base": 100, "unit": 7.5}
-    ],
-    "四川省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 26, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 111, "unit": 6.5}
-    ],
-    "宁夏回族自治区": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 24, "unit": 6},
-        {"first": 20, "max": float('inf'), "base": 126, "unit": 7}
-    ],
-    "安徽省": [
-        {"first": 1, "max": 3, "base": 11, "unit": 2},
-        {"first": 3, "max": 20, "base": 15, "unit": 2},
-        {"first": 20, "max": float('inf'), "base": 49, "unit": 3}
-    ],
-    "山东省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "山西省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5},
-        {"first": 3, "max": 20, "base": 25, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 93, "unit": 5}
-    ],
-    "广东省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 108, "unit": 6.5}
-    ],
-    "广西壮族自治区": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 26, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 111, "unit": 6.5}
-    ],
-    "新疆维吾尔自治区": [
-        {"first": 1, "max": 3, "base": 19, "unit": 10},
-        {"first": 3, "max": 20, "base": 39, "unit": 10},
-        {"first": 20, "max": float('inf'), "base": 209, "unit": 12}
-    ],
-    "江苏省": [
-        {"first": 1, "max": 3, "base": 11, "unit": 2},
-        {"first": 3, "max": 20, "base": 15, "unit": 2},
-        {"first": 20, "max": float('inf'), "base": 49, "unit": 3}
-    ],
-    "江西省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "河北省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "河南省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "浙江省": [
-        {"first": 1, "max": 3, "base": 11, "unit": 2},
-        {"first": 3, "max": 20, "base": 15, "unit": 2},
-        {"first": 20, "max": float('inf'), "base": 49, "unit": 3}
-    ],
-    "海南省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 26, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 111, "unit": 6.5}
-    ],
-    "湖北省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "湖南省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 91, "unit": 5}
-    ],
-    "甘肃省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 4.5},
-        {"first": 20, "max": float('inf'), "base": 99.5, "unit": 6}
-    ],
-    "福建省": [
-        {"first": 1, "max": 3, "base": 13, "unit": 5},
-        {"first": 3, "max": 20, "base": 23, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 108, "unit": 6.5}
-    ],
-    "贵州省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 26, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 111, "unit": 6.5}
-    ],
-    "辽宁省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 26, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 111, "unit": 6.5}
-    ],
-    "重庆市": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 26, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 111, "unit": 6.5}
-    ],
-    "陕西省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 5},
-        {"first": 3, "max": 20, "base": 25, "unit": 4},
-        {"first": 20, "max": float('inf'), "base": 93, "unit": 5}
-    ],
-    "青海省": [
-        {"first": 1, "max": 3, "base": 14, "unit": 5.5},
-        {"first": 3, "max": 20, "base": 25, "unit": 5},
-        {"first": 20, "max": float('inf'), "base": 110, "unit": 6.5}
-    ],
-    "黑龙江省": [
-        {"first": 1, "max": 3, "base": 15, "unit": 7},
-        {"first": 3, "max": 15, "base": 29, "unit": 6},
-        {"first": 15, "max": float('inf'), "base": 101, "unit": 7}
-    ]
-}
-
 def calculate_sf(weight, province):
-    key = "同省" if province == "上海市" else province
-    if key not in SF_PRICE_TABLE:
-        return None
-
-    tiers = SF_PRICE_TABLE[key]
-    for tier in tiers:
-        if weight <= tier["max"]:
-            cost = tier["base"] + (weight - tier["first"]) * tier["unit"]
-            return round(cost)
-    return None
-
+    if weight <= 1.0:
+        return 12.0
+    else:
+        return round(12.0 + (weight - 1.0) * 2.0, 2)
 
 # ==============================
-# 申通快递（第五区修正）
+# 申通快递计费逻辑（2025年9月报价）
 # ==============================
-
-STO_FIFTH_ZONE_PRICES = {
-    "内蒙古自治区": 6,
-    "甘肃省": 6,
-    "海南省": 6,
-    "宁夏回族自治区": 6,
-    "青海省": 6,
-    "新疆维吾尔自治区": 13,
-    "西藏自治区": 13
+COURIER_REGIONS_STO = {
+    "one": ["上海市", "江苏省", "浙江省", "安徽省"],
+    "two": ["北京市", "天津市", "河北省", "河南省", "山东省", "湖北省", "湖南省",
+            "江西省", "广东省", "福建省"],
+    "three": ["陕西省", "山西省", "重庆市", "贵州省", "辽宁省"],
+    "four": ["四川省", "广西壮族自治区", "吉林省", "黑龙江省", "云南省"],
+    "five": ["内蒙古自治区", "甘肃省", "海南省", "宁夏回族自治区", "青海省"],
+    "new_tibet": ["新疆维吾尔自治区", "西藏自治区"]
 }
+
+def get_region_sto(province):
+    for region, provinces in COURIER_REGIONS_STO.items():
+        if province in provinces:
+            return region
+    return "two"  # 默认二区
 
 def calculate_sto(weight, province):
-    unit_price = STO_FIFTH_ZONE_PRICES.get(province, 5)  # 默认5元/kg
-    handling_fee = 0.5 if province in ["北京市", "上海市"] else 0
-    total = weight * unit_price + handling_fee
-    return round(total, 2)
+    region = get_region_sto(province)
 
+    if region == "new_tibet":
+        return round(weight * 13.0, 2)
+    elif region == "five":
+        return round(weight * 6.0, 2)
+    else:
+        # 一~四区：≤3kg 查表，>3kg 首重4元 + 续重
+        if weight <= 0.5:
+            price = 1.7
+        elif weight <= 1.0:
+            price = 2.3
+        elif weight <= 2.0:
+            price = 3.2
+        elif weight <= 3.0:
+            price = 4.0
+        else:
+            base_price = 4.0
+            if region == "one":
+                unit = 0.8
+            elif region == "two":
+                unit = 1.5
+            else:  # three or four
+                unit = 2.0
+            price = base_price + (weight - 3.0) * unit
+        return round(price, 2)
 
 # ==============================
-# 中通快递（仅北京上海收0.5元面单费）
+# 中通快递计费逻辑（2025年9月报价 + 账单验证）
 # ==============================
-
 def calculate_zto(weight, province):
-    base_price_per_kg = 5  # 可根据实际调整
-    handling_fee = 0.5 if province in ["北京市", "上海市"] else 0
-    total = weight * base_price_per_kg + handling_fee
+    n = math.ceil(weight)  # 向上取整到整公斤
+
+    if province in ["青海省", "甘肃省", "内蒙古自治区", "宁夏回族自治区", "海南省"]:
+        # B类偏远
+        if n == 1:
+            total = 7.0
+        elif n == 2:
+            total = 12.0
+        elif n == 3:
+            total = 17.0
+        else:
+            total = 17.0 + (n - 3) * 5.0
+    elif province in ["新疆维吾尔自治区", "西藏自治区"]:
+        # C类：首1kg=13，续重12/kg
+        if n == 1:
+            total = 13.0
+        else:
+            total = 13.0 + (n - 1) * 12.0
+    else:
+        # A类：江浙沪等23省
+        if n == 1:
+            total = 2.5
+        elif n == 2:
+            total = 3.8
+        elif n == 3:
+            total = 4.8
+        else:
+            total = 4.8 + (n - 3) * 1.0
     return round(total, 2)
 
+# ==============================
+# 城市附加费（仅省份级识别）
+# ==============================
+def add_city_fee(courier, province):
+    fee = 0.0
+    if courier == "申通":
+        if province == "上海市":
+            fee += 0.6
+        elif province == "北京市":
+            fee += 1.0
+        # 深圳无法识别，暂不加
+    elif courier == "中通":
+        if province == "上海市" or province == "北京市":
+            fee += 0.5
+    # 顺丰暂无附加费说明
+    return fee
 
 # ==============================
-# 省份按地理大区排序
+# 所有支持的省份（与前端一致）
 # ==============================
-
-PROVINCE_ORDER = [
-    # 华东
-    "上海市", "江苏省", "浙江省", "安徽省", "福建省", "江西省", "山东省",
-    # 华北
-    "北京市", "天津市", "河北省", "山西省", "内蒙古自治区",
-    # 华南
-    "广东省", "广西壮族自治区", "海南省",
-    # 华中
-    "河南省", "湖北省", "湖南省",
-    # 西南
-    "重庆市", "四川省", "贵州省", "云南省", "西藏自治区",
-    # 西北
-    "陕西省", "甘肃省", "青海省", "宁夏回族自治区", "新疆维吾尔自治区",
-    # 东北
-    "辽宁省", "吉林省", "黑龙江省"
+PROVINCES = [
+    "上海市", "江苏省", "浙江省", "安徽省", "北京市", "天津市", "河北省", "河南省",
+    "山东省", "湖北省", "湖南省", "江西省", "广东省", "福建省", "陕西省", "山西省",
+    "重庆市", "贵州省", "辽宁省", "四川省", "广西壮族自治区", "吉林省", "黑龙江省",
+    "云南省", "内蒙古自治区", "甘肃省", "海南省", "宁夏回族自治区", "青海省",
+    "新疆维吾尔自治区", "西藏自治区"
 ]
 
-
-# ==============================
-# Flask 路由（统一入口）
-# ==============================
-
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
     selected_courier = ""
-    weight = ""
+    weight_val = ""
     selected_province = ""
 
-    if request.method == "POST":
-        try:
-            selected_courier = request.form["courier"]
-            weight = request.form["weight"]
-            selected_province = request.form["province"]
-            weight_val = float(weight)
+    if request.method == 'POST':
+        selected_courier = request.form.get('courier', '')
+        weight_val = request.form.get('weight', '').strip()
+        selected_province = request.form.get('province', '')
 
-            if weight_val <= 0:
+        try:
+            weight_float = float(weight_val)
+            if weight_float <= 0:
                 result = "重量必须大于0"
-            elif selected_courier == "顺丰":
-                result = calculate_sf(weight_val, selected_province)
-                if result is None:
-                    result = "顺丰暂不支持该地区"
-            elif selected_courier == "申通":
-                result = calculate_sto(weight_val, selected_province)
-            elif selected_courier == "中通":
-                result = calculate_zto(weight_val, selected_province)
+            elif selected_courier not in ["顺丰", "申通", "中通"]:
+                result = "请选择有效的快递公司"
+            elif selected_province not in PROVINCES:
+                result = "请选择有效的目的省份"
             else:
-                result = "未知快递公司"
-        except (ValueError, KeyError):
-            result = "输入无效，请检查数据"
+                # 计算基础运费
+                if selected_courier == "顺丰":
+                    base_cost = calculate_sf(weight_float, selected_province)
+                elif selected_courier == "申通":
+                    base_cost = calculate_sto(weight_float, selected_province)
+                elif selected_courier == "中通":
+                    base_cost = calculate_zto(weight_float, selected_province)
+                else:
+                    base_cost = 0
+
+                # 加城市附加费
+                extra_fee = add_city_fee(selected_courier, selected_province)
+                total_cost = base_cost + extra_fee
+                result = total_cost
+
+        except ValueError:
+            result = "请输入有效的数字重量"
 
     return render_template(
-        "index.html",
-        provinces=PROVINCE_ORDER,
+        'index.html',
+        result=result,
         courier=selected_courier,
-        weight=weight,
+        weight=weight_val,
         province=selected_province,
-        result=result
+        provinces=PROVINCES
     )
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
