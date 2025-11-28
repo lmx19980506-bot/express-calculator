@@ -228,35 +228,47 @@ PROVINCE_ORDER = [
 
 
 # ==============================
-# Flask 路由
+# Flask 路由（统一入口）
 # ==============================
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template("index.html", provinces=PROVINCE_ORDER)
-
-@app.route("/calculate", methods=["POST"])
-def calculate():
-    courier = request.form["courier"]
-    weight = float(request.form["weight"])
-    province = request.form["province"]
-
     result = None
-    if courier == "顺丰":
-        result = calculate_sf(weight, province)
-    elif courier == "申通":
-        result = calculate_sto(weight, province)
-    elif courier == "中通":
-        result = calculate_zto(weight, province)
+    selected_courier = ""
+    weight = ""
+    selected_province = ""
+
+    if request.method == "POST":
+        try:
+            selected_courier = request.form["courier"]
+            weight = request.form["weight"]
+            selected_province = request.form["province"]
+            weight_val = float(weight)
+
+            if weight_val <= 0:
+                result = "重量必须大于0"
+            elif selected_courier == "顺丰":
+                result = calculate_sf(weight_val, selected_province)
+                if result is None:
+                    result = "顺丰暂不支持该地区"
+            elif selected_courier == "申通":
+                result = calculate_sto(weight_val, selected_province)
+            elif selected_courier == "中通":
+                result = calculate_zto(weight_val, selected_province)
+            else:
+                result = "未知快递公司"
+        except (ValueError, KeyError):
+            result = "输入无效，请检查数据"
 
     return render_template(
         "index.html",
         provinces=PROVINCE_ORDER,
-        courier=courier,
+        courier=selected_courier,
         weight=weight,
-        province=province,
+        province=selected_province,
         result=result
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
