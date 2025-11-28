@@ -1,1 +1,4 @@
 Flask==3.0.3
+gunicorn==23.0.0
+gevent==24.11.1
+feat: add gunicorn and gevent for production deploy
