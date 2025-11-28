@@ -1,66 +1,125 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.4">
-  <style type="text/css">
-    body {background-color: #f9f9f9}
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; -webkit-text-stroke: #000000}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; -webkit-text-stroke: #000000; min-height: 17.0px}
-    span.s1 {font-kerning: none}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快递运费计算器</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            font-size: 18px;
+            text-align: center;
+        }
+        .placeholder {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #f1f1f1;
+            color: #777;
+            text-align: center;
+            font-style: italic;
+        }
+        .province-section {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;html lang="zh-CN"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;head&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;title&gt;快递费用计算器&lt;/title&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;style&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>label { display: inline-block; width: 100px; margin-top: 10px; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>select, input { padding: 5px; width: 200px; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>button { margin-top: 20px; padding: 8px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.result { margin-top: 20px; font-size: 18px; color: #d32f2f; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;body&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h1&gt;快递费用计算器&lt;/h1&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;form method="POST" action="/calculate"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;label&gt;快递公司：&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;select name="courier" required&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option value="顺丰"&gt;顺丰&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option value="申通"&gt;申通&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option value="中通"&gt;中通&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/select&gt;&lt;br&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;label&gt;重量 (kg)：&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;input type="number" step="0.1" name="weight" min="0.1" required&gt;&lt;br&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;label&gt;目的地：&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;select name="province" required&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{% for p in provinces %}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;option value="{{ p }}"&gt;{{ p }}&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{% endfor %}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/select&gt;&lt;br&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button type="submit"&gt;计算运费&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/form&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>{% if result is not none %}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="result"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;strong&gt;运费：{{ "%.2f"|format(result) }} 元&lt;/strong&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>{% elif result is none and courier %}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="result" style="color: red;"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>该地区暂不支持 {{ courier }} 快递。</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>{% endif %}</span></p>
-<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+    <h1>📦 快递运费计算器</h1>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="company">选择快递公司：</label>
+            <select name="company" id="company" required>
+                <option value="">-- 请选择 --</option>
+                <option value="sf" {% if selected_company == 'sf' %}selected{% endif %}>顺丰速运</option>
+                <option value="st" {% if selected_company == 'st' %}selected{% endif %}>申通快递</option>
+                <option value="zt" {% if selected_company == 'zt' %}selected{% endif %}>中通快递</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="weight">重量（kg）：</label>
+            <input type="number" step="0.1" min="0.1" name="weight" id="weight" 
+                   value="{{ weight }}" placeholder="例如：2.5" required>
+        </div>
+
+        <div class="form-group">
+            <label for="province">目的地省份：</label>
+            <select name="province" id="province" required>
+                <option value="">-- 请选择 --</option>
+                {% for province in provinces %}
+                <option value="{{ province }}" {% if province == selected_province %}selected{% endif %}>
+                    {{ province }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit">计算运费</button>
+    </form>
+
+    <!-- 显示结果或提示 -->
+    {% if result is not none %}
+        <div class="result">
+            运费：<strong>{{ "%.2f"|format(result) }} 元</strong>
+        </div>
+    {% else %}
+        <div class="placeholder">
+            填写信息后点击“计算运费”
+        </div>
+    {% endif %}
+
+    <!-- 省份分区说明（可选） -->
+    <div class="province-section">
+        <p><small>注：省份按地理大区排序（华东 → 华北 → 华南 → 华中 → 西南 → 西北 → 东北）</small></p>
+    </div>
 </body>
 </html>
